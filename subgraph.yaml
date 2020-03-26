@@ -1,6 +1,6 @@
 specVersion: 0.0.2
-description: Uniswap is a decentralized protocol for automated token exchange on Ethereum.
-repository: https://github.com/ianlapham/uniswap-subgraph-v2
+description: Uniswap is a fully decentralized protocol for automated liquidity provision on Ethereum.
+repository: https://github.com/Uniswap/uniswap-v2-subgraph
 schema:
   file: ./schema.graphql
 dataSources:
@@ -8,9 +8,9 @@ dataSources:
     name: Factory
     network: rinkeby
     source:
-      address: '0x8A500Eff6D40B53ab7CA5D951E5eBa539445b6f0'
+      address: '0xe2f197885abe8ec7c866cff76605fd06d4576218'
       abi: Factory
-      startBlock: 5729170
+      startBlock: 6155580
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.3
@@ -18,47 +18,46 @@ dataSources:
       file: ./src/mappings/factory.ts
       entities:
         - Uniswap
-        - Pair
         - Token
+        - Pair
       abis:
         - name: Factory
           file: ./abis/factory.json
         - name: ERC20
           file: ./abis/ERC20.json
-        - name: ERC20SymbolBytes
-          file: ./abis/ERC20SymbolBytes.json
         - name: ERC20NameBytes
           file: ./abis/ERC20NameBytes.json
+        - name: ERC20SymbolBytes
+          file: ./abis/ERC20SymbolBytes.json
       eventHandlers:
-        - event: ExchangeCreated(indexed address,indexed address,address,uint256)
-          handler: handleNewExchange
+        - event: PairCreated(indexed address,indexed address,address,uint256)
+          handler: handlePairCreated
 templates:
-  # These data sources templates exist to support the different flags that a token could specify- kind: ethereum/contract
   - kind: ethereum/contract
-    name: Exchange
+    name: Pair
     network: rinkeby
     source:
-      abi: Exchange
+      abi: Pair
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.3
       language: wasm/assemblyscript
-      file: ./src/mappings/core.ts
+      file: ./src/mappings/pair.ts
       entities:
-        - Pair
         - Uniswap
         - Token
+        - Pair
       abis:
-        - name: Exchange
-          file: ./abis/exchange.json
+        - name: Pair
+          file: ./abis/pair.json
       eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
         - event: Mint(indexed address,uint256,uint256)
           handler: handleMint
         - event: Burn(indexed address,uint256,uint256,indexed address)
           handler: handleBurn
-        - event: Swap(indexed address,indexed address,uint256,uint256,indexed address)
+        - event: Swap(indexed address,uint256,uint256,uint256,uint256,indexed address)
           handler: handleSwap
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
         - event: Sync(uint112,uint112)
           handler: handleSync
