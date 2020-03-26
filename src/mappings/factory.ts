@@ -26,9 +26,14 @@ export function handlePairCreated(event: PairCreated): void {
     token0 = new Token(event.params.token0.toHexString())
     token0.name = fetchTokenName(event.params.token0)
     token0.symbol = fetchTokenSymbol(event.params.token0)
-    token0.decimals = fetchTokenDecimals(event.params.token0)
-    token0.pairs = []
+    let decimals = fetchTokenDecimals(event.params.token0)
     // bail if we couldn't figure out the decimals
+    if (decimals === null) {
+      return
+    }
+    token0.decimals = decimals
+    token0.pairs = []
+
     if (token0.decimals === null) {
       return
     }
@@ -40,12 +45,13 @@ export function handlePairCreated(event: PairCreated): void {
     token1 = new Token(event.params.token1.toHexString())
     token1.name = fetchTokenName(event.params.token1)
     token1.symbol = fetchTokenSymbol(event.params.token1)
-    token1.decimals = fetchTokenDecimals(event.params.token1)
-    token0.pairs = []
+    let decimals = fetchTokenDecimals(event.params.token1)
     // bail if we couldn't figure out the decimals
-    if (token1.decimals === null) {
+    if (decimals === null) {
       return
     }
+    token1.decimals = decimals
+    token1.pairs = []
     token1.save()
   }
 

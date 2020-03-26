@@ -153,6 +153,7 @@ export function handleTransfer(event: Transfer): void {
       let mint = MintEvent.load(mints[mints.length - 1])
       burn.feeTo = mint.to
       burn.feeLiquidity = mint.liquidity
+      // TODO test
       // remove the logical mint
       store.remove('Mint', mints[mints.length - 1])
       // update the transaction
