@@ -4,7 +4,7 @@ import { ERC20 } from './types/Factory/ERC20'
 import { ERC20SymbolBytes } from './types/Factory/ERC20SymbolBytes'
 import { ERC20NameBytes } from './types/Factory/ERC20NameBytes'
 
-export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000'
+export let ADDRESS_ZERO = Address.fromHexString('0x0000000000000000000000000000000000000000')
 
 export let ZERO_BI = BigInt.fromI32(0)
 export let ONE_BI = BigInt.fromI32(1)

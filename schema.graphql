@@ -49,7 +49,7 @@ type Transaction @entity {
   swaps: [Swap]!
 }
 
-type Mint implements Event @entity {
+type Mint @entity {
   # transaction hash + "-" + index in mints Transaction array
   id: ID!
   transaction: Transaction! @derivedFrom(field: "mints")
@@ -64,13 +64,14 @@ type Mint implements Event @entity {
   sender: Bytes
   amount0: BigDecimal
   amount1: BigDecimal
+  logIndex: BigInt
 
   # optional fee fields, if a Transfer event is fired in _mintFee
   feeTo: Bytes
   feeLiquidity: BigDecimal
 }
 
-type Burn implements Event @entity {
+type Burn @entity {
   # transaction hash + "-" + index in burns Transaction array
   id: ID!
   transaction: Transaction! @derivedFrom(field: "burns")
@@ -85,13 +86,14 @@ type Burn implements Event @entity {
   amount0: BigDecimal
   amount1: BigDecimal
   to: Bytes
+  logIndex: BigInt
 
   # optional fee fields, if a Transfer event is fired in _mintFee
   feeTo: Bytes
   feeLiquidity: BigDecimal
 }
 
-type Swap implements Event @entity {
+type Swap @entity {
   # transaction hash + "-" + index in swaps Transaction array
   id: ID!
   transaction: Transaction! @derivedFrom(field: "swaps")
@@ -105,6 +107,7 @@ type Swap implements Event @entity {
   amount0Out: BigDecimal!
   amount1Out: BigDecimal!
   to: Bytes!
+  logIndex: BigInt
 }
 
 # # stores for USD calculations

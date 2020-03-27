@@ -71,7 +71,7 @@ import { Mint, Burn, Swap, Sync, Transfer } from '../types/templates/Pair/Pair'
 // }
 
 function isCompleteMint(mintId: string): boolean {
-  return MintEvent.load(mintId).sender !== null // sufficient checks
+  return MintEvent.load(mintId).sender !== null // sufficient check
 }
 
 /**
@@ -107,11 +107,11 @@ export function handleTransfer(event: Transfer): void {
 
   let mints = transaction.mints
   // mint
-  if (event.params.from.toHexString() === ADDRESS_ZERO) {
+  if (event.params.from.equals(ADDRESS_ZERO)) {
     // increment totalSupply
     pair.totalSupply = pair.totalSupply.plus(value)
     pair.save()
-    // this is the start of a new instance of a logical mint _OR_ a logical burn for this transaction
+    // the first (primary or fee) Transfer of a new mint _OR_ the first (fee) Transfer of a burn in the transaction
     if (mints.length === 0 || isCompleteMint(mints[mints.length - 1])) {
       let mint = new MintEvent(
         event.transaction.hash.toHexString().concat('-').concat(BigInt.fromI32(mints.length).toString())
@@ -125,7 +125,7 @@ export function handleTransfer(event: Transfer): void {
       transaction.mints = mints
       transaction.save()
     }
-    // this is the second Mint event of a logical mint
+    // this is the second Transfer of a mint
     else {
       // this attributes the initial MINIMUM_LIQUIDITY as fee liquidity to address(0)
       let mint = MintEvent.load(mints[mints.length - 1])
@@ -137,18 +137,18 @@ export function handleTransfer(event: Transfer): void {
     }
   }
   // burn
-  else if (event.params.to.toHexString() === ADDRESS_ZERO && event.params.from.toHexString() === pair.id) {
+  else if (event.params.to.equals(ADDRESS_ZERO) && event.params.from.toHexString() == pair.id) {
     // decrement totalSupply
     pair.totalSupply = pair.totalSupply.minus(value)
     pair.save()
-    // this is a new instance of a logical burn
+    // this is a new burn
     let burns = transaction.burns
     let burn = new BurnEvent(
       event.transaction.hash.toHexString().concat('-').concat(BigInt.fromI32(burns.length).toString())
     )
     burn.pair = pair.id
     burn.liquidity = value
-    // if this logical burn included a fee mint, account for this
+    // if this burn included an earlier fee Transfer, account for this
     if (mints.length !== 0 && !isCompleteMint(mints[mints.length - 1])) {
       let mint = MintEvent.load(mints[mints.length - 1])
       burn.feeTo = mint.to
@@ -185,6 +185,7 @@ export function handleMint(event: Mint): void {
   mint.sender = event.params.sender
   mint.amount0 = convertTokenToDecimal(event.params.amount0, token0.decimals)
   mint.amount1 = convertTokenToDecimal(event.params.amount1, token1.decimals)
+  mint.logIndex = event.logIndex
   mint.save()
   // update exchange info (except balances, sync will cover that)
   // let token0Amount =
@@ -275,6 +276,7 @@ export function handleBurn(event: Burn): void {
   burn.amount0 = convertTokenToDecimal(event.params.amount0, token0.decimals)
   burn.amount1 = convertTokenToDecimal(event.params.amount1, token1.decimals)
   burn.to = event.params.to
+  burn.logIndex = event.logIndex
   burn.save()
 
   // let token0Amount = convertTokenToDecimal(event.params.amount0, token0.decimals)
@@ -475,6 +477,7 @@ export function handleSwap(event: Swap): void {
   swap.amount0Out = amount0Out
   swap.amount1Out = amount1Out
   swap.to = event.params.to
+  swap.logIndex = event.logIndex
   swap.save()
   // update the transaction
   swaps.push(swap.id)
@@ -565,7 +568,7 @@ export function handleSwap(event: Swap): void {
   // exchangeDayData.save()
 
   // // swap specific updating
-  // let token0DayID = token0.id.toString().concat('-').concat(BigInt.fromI32(dayID).toString())
+  // let token0DayID = token0.id.toHexString().concat('-').concat(BigInt.fromI32(dayID).toString())
   // let token0DayData = TokenDayData.load(token0DayID)
   // token0DayData = TokenDayData.load(token0DayID)
   // token0DayData.dailyVolumeToken = token0DayData.dailyVolumeToken.plus(token0Amount)
@@ -576,7 +579,7 @@ export function handleSwap(event: Swap): void {
   // token0DayData.save()
 
   // // swap specific updating
-  // let token1DayID = token1.id.toString().concat('-').concat(BigInt.fromI32(dayID).toString())
+  // let token1DayID = token1.id.toHexString().concat('-').concat(BigInt.fromI32(dayID).toString())
   // let token1DayData = TokenDayData.load(token1DayID)
   // token1DayData = TokenDayData.load(token1DayID)
   // token1DayData.dailyVolumeToken = token1DayData.dailyVolumeToken.plus(token1Amount)

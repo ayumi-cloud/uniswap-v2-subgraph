@@ -64,6 +64,8 @@ export function handlePairCreated(event: PairCreated): void {
   pair.totalSupply = ZERO_BD
   pair.createdAtBlockNumber = event.block.number
   pair.createdAtTimestamp = event.block.timestamp
+  pair.volumeToken0 = ZERO_BD
+  pair.volumeToken1 = ZERO_BD
   pair.save()
 
   // update Uniswap and save
@@ -74,10 +76,10 @@ export function handlePairCreated(event: PairCreated): void {
   uniswap.save()
 
   // update Tokens and save
-  let WETHAddress = Address.fromString('0xc778417e063141139fce010982780140aa0cd5ab')
-  if (event.params.token0 === WETHAddress) {
+  let WETHAddress = Address.fromHexString('0xc778417e063141139fce010982780140aa0cd5ab')
+  if (event.params.token0.equals(WETHAddress)) {
     token1.WETHPair = pair.id
-  } else if (event.params.token1 === WETHAddress) {
+  } else if (event.params.token1.equals(WETHAddress)) {
     token0.WETHPair = pair.id
   }
   let nextPairsToken0 = token0.pairs
